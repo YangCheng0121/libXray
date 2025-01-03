@@ -232,6 +232,7 @@ func TestXrayVersion(t *testing.T) {
 }
 
 // TestPing tests the Ping function of libXray
+// TestPing tests the Ping function of libXray
 func TestPing(t *testing.T) {
 	// Example VMess configuration (same as in the previous test)
 	vmess := `eyJhZGQiOiAiMzguMTY1LjMzLjEyNiIsICJhaWQiOiAiMCIsICJob3N0IjogIiIsICJpZCI6ICJhYjliMWUwZC05YzczLTQxNzYtODE5OS00N2I0OTNhMjJlNGMiLCAibmV0IjogImtjcCIsICJwYXRoIjogIiIsICJwb3J0IjogMjYzODgsICJwcyI6ICIiLCAic2N5IjogIm5vbmUiLCAidGxzIjogIiIsICJ0eXBlIjogIm5vbmUiLCAidiI6ICIyIn0=`
@@ -252,7 +253,7 @@ func TestPing(t *testing.T) {
 		ConfigPath: configPath,
 		Timeout:    5,                        // Set the timeout duration
 		Url:        "https://www.google.com", // Set the URL to ping
-		Proxy:      "https://www.google.com", // If needed, set the proxy
+		Proxy:      "http://127.0.0.1:1080",  // If needed, set the proxy
 	}
 
 	// Encode the PingRequest as base64
@@ -264,20 +265,21 @@ func TestPing(t *testing.T) {
 	// Call the Ping function, passing in the base64 encoded request
 	response := Ping(base64Request)
 
-	// Example: Check if the response contains a success field and if it's true
+	// Decode the response (expected to be base64 encoded)
 	decoded, err := base64.StdEncoding.DecodeString(response)
 	if err != nil {
 		t.Fatalf("Failed to decode the ping response: %v", err)
 	}
 
+	// Deserialize the response into a map (assuming it's JSON)
 	var result map[string]interface{}
 	if err := json.Unmarshal(decoded, &result); err != nil {
 		t.Fatalf("Failed to parse the ping response JSON: %v", err)
 	}
 
-	// Check the "success" field in the response
+	// Check the "success" field in the response, if it exists
 	if success, ok := result["success"].(bool); !ok || !success {
-		t.Fatalf("Ping failed: %v", result)
+		t.Fatalf("Ping failed or 'success' field is missing: %v", result)
 	}
 
 	// Log the response for visibility
@@ -291,5 +293,12 @@ func TestPing(t *testing.T) {
 	// Optionally, check that the timeout is respected (depends on your implementation of Ping)
 	if timeout, ok := result["timeout"].(float64); !ok || timeout != float64(pingRequest.Timeout) {
 		t.Errorf("Expected timeout to be '%d', but got '%v'", pingRequest.Timeout, timeout)
+	}
+
+	// Additional check for delay or other expected fields can go here, if applicable
+	if delay, ok := result["delay"].(float64); ok {
+		t.Log("Ping delay:", delay)
+	} else {
+		t.Errorf("Expected 'delay' in response but got: %v", result)
 	}
 }
