@@ -232,15 +232,27 @@ func TestXrayVersion(t *testing.T) {
 }
 
 // TestPing tests the Ping function of libXray
-// TestPing tests the Ping function of libXray
 func TestPing(t *testing.T) {
+	// Example VMess configuration (same as in the previous test)
+	vmess := `eyJhZGQiOiAiMzguMTY1LjMzLjEyNiIsICJhaWQiOiAiMCIsICJob3N0IjogIiIsICJpZCI6ICJhYjliMWUwZC05YzczLTQxNzYtODE5OS00N2I0OTNhMjJlNGMiLCAibmV0IjogImtjcCIsICJwYXRoIjogIiIsICJwb3J0IjogMjYzODgsICJwcyI6ICIiLCAic2N5IjogIm5vbmUiLCAidGxzIjogIiIsICJ0eXBlIjogIm5vbmUiLCAidiI6ICIyIn0=`
+
+	// Prepare the Xray configuration file
+	configPath, err := prepareXrayConfigFile(vmess, "xray_config_run.json")
+	if err != nil {
+		t.Fatalf("Failed to prepare Xray config: %v", err)
+	}
+
+	// Create a request for running Xray
+	projectRoot, _ := filepath.Abs(".")
+	datDir := filepath.Join(projectRoot, "dat")
+
 	// Example Ping configuration (base64 encoded)
 	pingRequest := pingRequest{
-		DatDir:     "/path/to/dat",              // Set the dat directory path
-		ConfigPath: "/path/to/xray/config.json", // Set the Xray configuration path
-		Timeout:    5,                           // Set the timeout duration
-		Url:        "http://example.com",        // Set the URL to ping
-		Proxy:      "proxy",                     // If needed, set the proxy
+		DatDir:     datDir,
+		ConfigPath: configPath,
+		Timeout:    5,                        // Set the timeout duration
+		Url:        "https://www.google.com", // Set the URL to ping
+		Proxy:      "proxy",                  // If needed, set the proxy
 	}
 
 	// Encode the PingRequest as base64
