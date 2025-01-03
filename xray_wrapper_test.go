@@ -122,15 +122,12 @@ func handleTestResponse(response string, t *testing.T) {
 	t.Log("TestXray passed successfully", string(decoded))
 }
 
-// TestRunXrayWithVmess tests running Xray with VMess configuration
-func TestRunXrayWithVmess(t *testing.T) {
-	// Example VMess configuration (base64 encoded)
-	vmess := `xxx`
-
+// prepareXrayConfigFile is a helper function to decode VMess, create Xray config, and write to file
+func prepareXrayConfigFile(vmess string, configFilename string) (string, error) {
 	// Decode and parse the VMess configuration
 	vmessConfig, err := decodeVmessConfig(vmess)
 	if err != nil {
-		t.Fatalf("Failed to decode VMess: %v", err)
+		return "", err
 	}
 
 	// Create an Xray configuration from the VMess configuration
@@ -138,15 +135,30 @@ func TestRunXrayWithVmess(t *testing.T) {
 
 	// Prepare the path for the configuration file
 	projectRoot, _ := filepath.Abs(".")
-	configPath := filepath.Join(projectRoot, "config", "xray_config_test.json")
+	configPath := filepath.Join(projectRoot, "config", configFilename)
 
 	// Write the Xray configuration to a file
 	err = writeConfigToFile(xrayConfig, configPath)
 	if err != nil {
-		t.Fatalf("Failed to write Xray config: %v", err)
+		return "", err
+	}
+
+	return configPath, nil
+}
+
+// TestRunXrayWithVmess tests running Xray with VMess configuration
+func TestRunXrayWithVmess(t *testing.T) {
+	// Example VMess configuration (base64 encoded)
+	vmess := `eyJhZGQiOiAiMzguMTY1LjMzLjEyNiIsICJhaWQiOiAiMCIsICJob3N0IjogIiIsICJpZCI6ICJhYjliMWUwZC05YzczLTQxNzYtODE5OS00N2I0OTNhMjJlNGMiLCAibmV0IjogImtjcCIsICJwYXRoIjogIiIsICJwb3J0IjogMjYzODgsICJwcyI6ICIiLCAic2N5IjogIm5vbmUiLCAidGxzIjogIiIsICJ0eXBlIjogIm5vbmUiLCAidiI6ICIyIn0=`
+
+	// Prepare the Xray configuration file
+	configPath, err := prepareXrayConfigFile(vmess, "xray_config_test.json")
+	if err != nil {
+		t.Fatalf("Failed to prepare Xray config: %v", err)
 	}
 
 	// Create a request for testing Xray
+	projectRoot, _ := filepath.Abs(".")
 	datDir := filepath.Join(projectRoot, "dat")
 	request := TestXrayRequest{
 		DatDir:     datDir,
@@ -169,28 +181,16 @@ func TestRunXrayWithVmess(t *testing.T) {
 // TestRunXray tests running Xray with a VMess configuration for real-world usage
 func TestRunXray(t *testing.T) {
 	// Example VMess configuration (same as in the previous test)
-	vmess := `xxx`
+	vmess := `eyJhZGQiOiAiMzguMTY1LjMzLjEyNiIsICJhaWQiOiAiMCIsICJob3N0IjogIiIsICJpZCI6ICJhYjliMWUwZC05YzczLTQxNzYtODE5OS00N2I0OTNhMjJlNGMiLCAibmV0IjogImtjcCIsICJwYXRoIjogIiIsICJwb3J0IjogMjYzODgsICJwcyI6ICIiLCAic2N5IjogIm5vbmUiLCAidGxzIjogIiIsICJ0eXBlIjogIm5vbmUiLCAidiI6ICIyIn0=`
 
-	// Decode and parse the VMess configuration
-	vmessConfig, err := decodeVmessConfig(vmess)
+	// Prepare the Xray configuration file
+	configPath, err := prepareXrayConfigFile(vmess, "xray_config_run.json")
 	if err != nil {
-		t.Fatalf("Failed to decode VMess: %v", err)
-	}
-
-	// Create an Xray configuration from the VMess configuration
-	xrayConfig := createXrayConfig(vmessConfig)
-
-	// Prepare the path for the configuration file
-	projectRoot, _ := filepath.Abs(".")
-	configPath := filepath.Join(projectRoot, "config", "xray_config_run.json")
-
-	// Write the Xray configuration to a file
-	err = writeConfigToFile(xrayConfig, configPath)
-	if err != nil {
-		t.Fatalf("Failed to write Xray config: %v", err)
+		t.Fatalf("Failed to prepare Xray config: %v", err)
 	}
 
 	// Create a request for running Xray
+	projectRoot, _ := filepath.Abs(".")
 	datDir := filepath.Join(projectRoot, "dat")
 	runRequest := RunXrayRequest{
 		DatDir:     datDir,
@@ -229,4 +229,28 @@ func TestXrayVersion(t *testing.T) {
 	// Optionally, you could assert against the expected version if known
 	// expectedVersion := "some_expected_version_string"
 	// assert.Equal(t, expectedVersion, string(decodedVersion), "Xray version mismatch")
+}
+
+// TestPing tests the Ping function of libXray
+func TestPing(t *testing.T) {
+	// Example Ping configuration (base64 encoded)
+	pingRequest := pingRequest{
+		DatDir:     "/path/to/dat",              // Set the dat directory path
+		ConfigPath: "/path/to/xray/config.json", // Set the Xray configuration path
+		Timeout:    5,                           // Set the timeout duration
+		Url:        "http://example.com",        // Set the URL to ping
+		Proxy:      "proxy",                     // If needed, set the proxy
+	}
+
+	// Encode the PingRequest as base64
+	base64Request, err := base64EncodeRequest(pingRequest)
+	if err != nil {
+		t.Fatalf("Failed to encode PingRequest: %v", err)
+	}
+
+	// Call the Ping function, passing in the base64 encoded request
+	response := Ping(base64Request)
+
+	// Handle and check the returned response
+	handleTestResponse(response, t)
 }
