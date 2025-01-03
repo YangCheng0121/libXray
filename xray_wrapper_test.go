@@ -232,6 +232,7 @@ func TestXrayVersion(t *testing.T) {
 }
 
 // TestPing tests the Ping function of libXray
+// TestPing tests the Ping function of libXray
 func TestPing(t *testing.T) {
 	// Example Ping configuration (base64 encoded)
 	pingRequest := pingRequest{
@@ -253,4 +254,34 @@ func TestPing(t *testing.T) {
 
 	// Handle and check the returned response
 	handleTestResponse(response, t)
+
+	// Further checks can be added to validate the ping result:
+	// Example: Check if the response contains a success field and if it's true
+	decoded, err := base64.StdEncoding.DecodeString(response)
+	if err != nil {
+		t.Fatalf("Failed to decode the ping response: %v", err)
+	}
+
+	var result map[string]interface{}
+	if err := json.Unmarshal(decoded, &result); err != nil {
+		t.Fatalf("Failed to parse the ping response JSON: %v", err)
+	}
+
+	// Check the "success" field in the response
+	if success, ok := result["success"].(bool); !ok || !success {
+		t.Fatalf("Ping failed: %v", result)
+	}
+
+	// Log the response for visibility
+	t.Log("Ping succeeded:", result)
+
+	// Example assertion: Ensure the URL is present in the response
+	if url, ok := result["url"].(string); !ok || url != pingRequest.Url {
+		t.Errorf("Expected URL to be '%s', but got '%s'", pingRequest.Url, url)
+	}
+
+	// Optionally, check that the timeout is respected (depends on your implementation of Ping)
+	if timeout, ok := result["timeout"].(float64); !ok || timeout != float64(pingRequest.Timeout) {
+		t.Errorf("Expected timeout to be '%d', but got '%v'", pingRequest.Timeout, timeout)
+	}
 }
