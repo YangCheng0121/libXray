@@ -31,7 +31,7 @@ func LoadGeoData(base64Text string) string {
 	return response.EncodeToBase64("", err)
 }
 
-type pingRequest struct {
+type PingRequest struct {
 	DatDir     string `json:"datDir,omitempty"`
 	ConfigPath string `json:"configPath,omitempty"`
 	Timeout    int    `json:"timeout,omitempty"`
@@ -46,7 +46,7 @@ func Ping(base64Text string) string {
 	if err != nil {
 		return response.EncodeToBase64(nodep.PingDelayError, err)
 	}
-	var request pingRequest
+	var request PingRequest
 	err = json.Unmarshal(req, &request)
 	if err != nil {
 		return response.EncodeToBase64(nodep.PingDelayError, err)

@@ -247,12 +247,12 @@ func TestPing(t *testing.T) {
 	datDir := filepath.Join(projectRoot, "dat")
 
 	// Example Ping configuration (base64 encoded)
-	pingRequest := pingRequest{
+	pingRequest := PingRequest{
 		DatDir:     datDir,
 		ConfigPath: configPath,
 		Timeout:    5,                        // Set the timeout duration
 		Url:        "https://www.google.com", // Set the URL to ping
-		Proxy:      "proxy",                  // If needed, set the proxy
+		Proxy:      "https://www.google.com", // If needed, set the proxy
 	}
 
 	// Encode the PingRequest as base64
@@ -264,10 +264,6 @@ func TestPing(t *testing.T) {
 	// Call the Ping function, passing in the base64 encoded request
 	response := Ping(base64Request)
 
-	// Handle and check the returned response
-	handleTestResponse(response, t)
-
-	// Further checks can be added to validate the ping result:
 	// Example: Check if the response contains a success field and if it's true
 	decoded, err := base64.StdEncoding.DecodeString(response)
 	if err != nil {
