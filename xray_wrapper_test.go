@@ -242,7 +242,6 @@ func TestPing(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to prepare Xray config: %v", err)
 	}
-
 	// Create a request for running Xray
 	projectRoot, _ := filepath.Abs(".")
 	datDir := filepath.Join(projectRoot, "dat")
@@ -251,9 +250,9 @@ func TestPing(t *testing.T) {
 	pingRequest := PingRequest{
 		DatDir:     datDir,
 		ConfigPath: configPath,
-		Timeout:    5,                        // Set the timeout duration
-		Url:        "https://www.google.com", // Set the URL to ping
-		Proxy:      "http://127.0.0.1:1080",  // If needed, set the proxy
+		Timeout:    5000,                     // Set the timeout duration
+		Url:        "https://www.google.com", // Set the URL to ping (external URL)
+		Proxy:      "http://127.0.0.1:1080",  // Set the proxy (local proxy)
 	}
 
 	// Encode the PingRequest as base64
