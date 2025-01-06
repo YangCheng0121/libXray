@@ -250,7 +250,7 @@ func TestPing(t *testing.T) {
 	pingRequest := PingRequest{
 		DatDir:     datDir,
 		ConfigPath: configPath,
-		Timeout:    1000,                      // Set the timeout duration
+		Timeout:    10,                        // Set the timeout duration
 		Url:        "https://www.google.com",  // Set the URL to ping (external URL)
 		Proxy:      "socks5://127.0.0.1:1080", // Set the proxy (local proxy)
 	}
