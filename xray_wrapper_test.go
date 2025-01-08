@@ -51,7 +51,13 @@ func decodeVmessConfig(vmess string) (map[string]interface{}, error) {
 }
 
 // createXrayConfig creates an Xray configuration map based on the VMess configuration
-func createXrayConfig(vmessConfig map[string]interface{}) map[string]interface{} {
+// with a customizable protocol for the inbound connection (default is "socks").
+func createXrayConfig(vmessConfig map[string]interface{}, protocol string) map[string]interface{} {
+	// Set default protocol to "socks" if not provided
+	if protocol == "" {
+		protocol = "socks"
+	}
+
 	return map[string]interface{}{
 		"log": map[string]interface{}{
 			"loglevel": "debug",
@@ -59,7 +65,7 @@ func createXrayConfig(vmessConfig map[string]interface{}) map[string]interface{}
 		"inbounds": []map[string]interface{}{
 			{
 				"port":     1080,
-				"protocol": "socks",
+				"protocol": protocol, // Use the passed-in protocol, default is "socks"
 				"settings": map[string]interface{}{
 					"auth": "noauth",
 				},
@@ -123,7 +129,7 @@ func handleTestResponse(response string, t *testing.T) {
 }
 
 // prepareXrayConfigFile is a helper function to decode VMess, create Xray config, and write to file
-func prepareXrayConfigFile(vmess string, configFilename string) (string, error) {
+func prepareXrayConfigFile(vmess string, configFilename string, protocol string) (string, error) {
 	// Decode and parse the VMess configuration
 	vmessConfig, err := decodeVmessConfig(vmess)
 	if err != nil {
@@ -131,7 +137,7 @@ func prepareXrayConfigFile(vmess string, configFilename string) (string, error) 
 	}
 
 	// Create an Xray configuration from the VMess configuration
-	xrayConfig := createXrayConfig(vmessConfig)
+	xrayConfig := createXrayConfig(vmessConfig, protocol)
 
 	// Prepare the path for the configuration file
 	projectRoot, _ := filepath.Abs(".")
@@ -152,7 +158,7 @@ func TestRunXrayWithVmess(t *testing.T) {
 	vmess := `eyJhZGQiOiAiMzguMTY1LjMzLjEyNiIsICJhaWQiOiAiMCIsICJob3N0IjogIiIsICJpZCI6ICJhYjliMWUwZC05YzczLTQxNzYtODE5OS00N2I0OTNhMjJlNGMiLCAibmV0IjogImtjcCIsICJwYXRoIjogIiIsICJwb3J0IjogMjYzODgsICJwcyI6ICIiLCAic2N5IjogIm5vbmUiLCAidGxzIjogIiIsICJ0eXBlIjogIm5vbmUiLCAidiI6ICIyIn0=`
 
 	// Prepare the Xray configuration file
-	configPath, err := prepareXrayConfigFile(vmess, "xray_config_test.json")
+	configPath, err := prepareXrayConfigFile(vmess, "xray_config_test.json", "")
 	if err != nil {
 		t.Fatalf("Failed to prepare Xray config: %v", err)
 	}
@@ -184,7 +190,7 @@ func TestRunXray(t *testing.T) {
 	vmess := `eyJhZGQiOiAiMzguMTY1LjMzLjEyNiIsICJhaWQiOiAiMCIsICJob3N0IjogIiIsICJpZCI6ICJhYjliMWUwZC05YzczLTQxNzYtODE5OS00N2I0OTNhMjJlNGMiLCAibmV0IjogImtjcCIsICJwYXRoIjogIiIsICJwb3J0IjogMjYzODgsICJwcyI6ICIiLCAic2N5IjogIm5vbmUiLCAidGxzIjogIiIsICJ0eXBlIjogIm5vbmUiLCAidiI6ICIyIn0=`
 
 	// Prepare the Xray configuration file
-	configPath, err := prepareXrayConfigFile(vmess, "xray_config_run.json")
+	configPath, err := prepareXrayConfigFile(vmess, "xray_config_run.json", "")
 	if err != nil {
 		t.Fatalf("Failed to prepare Xray config: %v", err)
 	}
@@ -237,7 +243,7 @@ func TestPing(t *testing.T) {
 	vmess := `eyJhZGQiOiAiMzguMTY1LjMzLjEyNiIsICJhaWQiOiAiMCIsICJob3N0IjogIiIsICJpZCI6ICJhYjliMWUwZC05YzczLTQxNzYtODE5OS00N2I0OTNhMjJlNGMiLCAibmV0IjogImtjcCIsICJwYXRoIjogIiIsICJwb3J0IjogMjYzODgsICJwcyI6ICIiLCAic2N5IjogIm5vbmUiLCAidGxzIjogIiIsICJ0eXBlIjogIm5vbmUiLCAidiI6ICIyIn0=`
 
 	// Prepare the Xray configuration file
-	configPath, err := prepareXrayConfigFile(vmess, "xray_config_ping.json")
+	configPath, err := prepareXrayConfigFile(vmess, "xray_config_ping.json", "socks")
 	if err != nil {
 		t.Fatalf("Failed to prepare Xray config: %v", err)
 	}
@@ -250,9 +256,9 @@ func TestPing(t *testing.T) {
 	pingRequest := PingRequest{
 		DatDir:     datDir,
 		ConfigPath: configPath,
-		Timeout:    10,                        // Set the timeout duration
-		Url:        "https://www.google.com",  // Set the URL to ping (external URL)
-		Proxy:      "socks5://127.0.0.1:1080", // Set the proxy (local proxy)
+		Timeout:    1,                        // Set the timeout duration
+		Url:        "https://www.google.com", // Set the URL to ping (external URL)
+		Proxy:      "socks5://[::1]:1080",    // Set the proxy (local proxy)
 	}
 
 	// Encode the PingRequest as base64
