@@ -42,7 +42,9 @@ func setMaxMemory(maxMemory int64) {
 // configPath means the config.json file path.
 // maxMemory means the soft memory limit of golang, see SetMemoryLimit to find more information.
 func RunXray(datDir string, configPath string, maxMemory int64) (err error) {
-	InitEnv(datDir)
+	if len(datDir) > 0 {
+		InitEnv(datDir)
+	}
 	if maxMemory > 0 {
 		setMaxMemory(maxMemory)
 	}

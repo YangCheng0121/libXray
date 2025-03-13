@@ -164,8 +164,9 @@ func TestRunXrayWithVmess(t *testing.T) {
 	}
 
 	// Create a request for testing Xray
-	projectRoot, _ := filepath.Abs(".")
-	datDir := filepath.Join(projectRoot, "dat")
+	//projectRoot, _ := filepath.Abs(".")
+	//datDir := filepath.Join(projectRoot, "dat")
+	datDir := ""
 	request := TestXrayRequest{
 		DatDir:     datDir,
 		ConfigPath: configPath,
@@ -196,8 +197,9 @@ func TestRunXray(t *testing.T) {
 	}
 
 	// Create a request for running Xray
-	projectRoot, _ := filepath.Abs(".")
-	datDir := filepath.Join(projectRoot, "dat")
+	//projectRoot, _ := filepath.Abs(".")
+	//datDir := filepath.Join(projectRoot, "dat")
+	datDir := ""
 	runRequest := RunXrayRequest{
 		DatDir:     datDir,
 		ConfigPath: configPath,
